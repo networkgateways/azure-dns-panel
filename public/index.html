@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Azure DNS 管理面板</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0078d4, #106ebe);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 120, 212, 0.3);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+
+        .auth-section {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 120, 212, 0.1);
+        }
+
+        .auth-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+            height: calc(100vh - 300px);
+            min-height: 600px;
+        }
+
+        .left-panel, .right-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 120, 212, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 20px;
+            border-bottom: 2px solid #e9ecef;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+            color: #495057;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .panel-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #0078d4, #106ebe);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 120, 212, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 120, 212, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #connectBtn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+        }
+
+        #connectBtn.connected {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .zone-item, .record-item {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .zone-item:hover, .record-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .zone-item.active {
+            border-left: 6px solid #0078d4;
+            background: linear-gradient(135deg, #e3f2fd, #f3f8ff);
+            transform: translateX(8px);
+        }
+
+        .zone-name {
+            font-weight: 600;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .zone-status {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .records-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .selected-zone-name {
+            color: #0078d4;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .record-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: default;
+        }
+
+        .record-info {
+            flex: 1;
+        }
+
+        .record-name {
+            font-weight: 600;
+            color: #495057;
+            font-size: 15px;
+        }
+
+        .record-details {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 4px;
+        }
+
+        .record-type {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .record-type.A { background: linear-gradient(135deg, #2a9d8f, #264653); }
+        .record-type.AAAA { background: linear-gradient(135deg, #4895ef, #277da1); }
+        .record-type.CNAME { background: linear-gradient(135deg, #f94144, #f3722c); }
+        .record-type.MX { background: linear-gradient(135deg, #f3722c, #f8961e); }
+        .record-type.TXT { background: linear-gradient(135deg, #f8961e, #f9844a); }
+        .record-type.NS { background: linear-gradient(135deg, #9d4edd, #7209b7); }
+
+        .record-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+        }
+
+        .edit-btn {
+            background: linear-gradient(135deg, #fca311, #f77f00);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #e63946, #d32f2f);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 8% auto;
+            padding: 30px;
+            border: none;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 120, 212, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #0078d4;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 350px 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            
+            .left-panel {
+                order: 2;
+            }
+            
+            .right-panel {
+                order: 1;
+            }
+            
+            .auth-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                padding: 20px;
+            }
+            
+            .records-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+        }
+
+        /* 滚动条样式 */
+        .panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        /* 新增样式 */
+        .credentials-status {
+            background: rgba(0, 120, 212, 0.1);
+            color: #0078d4;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+            border-left: 4px solid #0078d4;
+        }
+        
+        .clear-creds-btn {
+            background: linear-gradient(135deg, #e63946, #d32f2f);
+            margin-top: 10px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Azure DNS 管理面板</h1>
+        </header>
+        
+        <div class="auth-section">
+            <h2>连接到 Azure</h2>
+            <div class="auth-grid">
+                <div class="form-group">
+                    <label for="tenantId">租户 ID:</label>
+                    <input type="text" id="tenantId" placeholder="输入Azure租户ID">
+                </div>
+                <div class="form-group">
+                    <label for="clientId">客户端 ID:</label>
+                    <input type="text" id="clientId" placeholder="输入Azure客户端ID">
+                </div>
+                <div class="form-group">
+                    <label for="clientSecret">客户端密钥:</label>
+                    <input type="password" id="clientSecret" placeholder="输入Azure客户端密钥">
+                </div>
+                <div class="form-group">
+                    <label for="subscriptionId">订阅 ID:</label>
+                    <input type="text" id="subscriptionId" placeholder="输入Azure订阅ID">
+                </div>
+            </div>
+            <button id="connectBtn">连接到 Azure</button>
+            <button id="clearCredsBtn" class="clear-creds-btn">清除保存的凭据</button>
+        </div>
+        
+        <div class="main-content">
+            <!-- 左侧面板 - DNS 区域 -->
+            <div class="left-panel">
+                <div class="panel-header">
+                    <h2>DNS 区域</h2>
+                </div>
+                <div class="panel-content">
+                    <div class="zone-list" id="zoneList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🌐</div>
+                            <p>请先连接到 Azure 以加载 DNS 区域</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧面板 - DNS 记录 -->
+            <div class="right-panel">
+                <div class="panel-header">
+                    <div class="records-header">
+                        <h2 id="selectedZone">请选择一个区域</h2>
+                        <button id="addRecordBtn" style="display: none;">添加记录</button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="records-list" id="recordsList">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📝</div>
+                            <p>选择左侧的 DNS 区域以查看记录</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 添加记录的模态框 -->
+        <div id="addRecordModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>添加 DNS 记录</h2>
+                <div class="form-group">
+                    <label for="recordName">名称:</label>
+                    <input type="text" id="recordName" placeholder="@, www, etc">
+                </div>
+                <div class="form-group">
+                    <label for="recordType">类型:</label>
+                    <select id="recordType">
+                        <option value="A">A</option>
+                        <option value="AAAA">AAAA</option>
+                        <option value="CNAME">CNAME</option>
+                        <option value="MX">MX</option>
+                        <option value="TXT">TXT</option>
+                        <option value="NS">NS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="recordValue">值:</label>
+                    <input type="text" id="recordValue" placeholder="IP地址或目标域名">
+                </div>
+                <div class="form-group">
+                    <label for="recordTTL">TTL (秒):</label>
+                    <input type="number" id="recordTTL" value="3600">
+                </div>
+                <button id="saveRecordBtn">保存记录</button>
+            </div>
+        </div>
+        
+        <!-- 编辑记录的模态框 -->
+        <div id="editRecordModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>编辑 DNS 记录</h2>
+                <div class="form-group">
+                    <label for="editRecordName">名称:</label>
+                    <input type="text" id="editRecordName" placeholder="@, www, etc">
+                </div>
+                <div class="form-group">
+                    <label for="editRecordType">类型:</label>
+                    <input type="text" id="editRecordType" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="editRecordValue">值:</label>
+                    <input type="text" id="editRecordValue" placeholder="IP地址或目标域名">
+                </div>
+                <div class="form-group">
+                    <label for="editRecordTTL">TTL (秒):</label>
+                    <input type="number" id="editRecordTTL" value="3600">
+                </div>
+                <input type="hidden" id="editRecordId">
+                <button id="updateRecordBtn">更新记录</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
