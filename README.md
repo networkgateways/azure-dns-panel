@@ -24,7 +24,7 @@
 1. 克隆或下载此项目到本地
 2. 进入项目目录
    ```
-   cd azure-dns-manager
+   cd azure-dns-panel
    ```
 3. 安装依赖
    ```
