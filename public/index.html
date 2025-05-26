@@ -599,6 +599,7 @@
             justify-content: center;
             border-radius: 50%;
             background: rgba(0, 0, 0, 0.05);
+            z-index: 10;
         }
 
         .close:hover {
@@ -853,7 +854,7 @@
         <!-- 添加记录的模态框 -->
         <div id="addRecordModal" class="modal">
             <div class="modal-content">
-                <span class="close">&times;</span>
+                <span class="close" onclick="closeModal('addRecordModal')">&times;</span>
                 <h2>添加 DNS 记录</h2>
                 <div class="form-group">
                     <label for="recordName">名称:</label>
