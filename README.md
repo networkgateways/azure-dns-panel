@@ -88,12 +88,6 @@
 - 建议为此应用创建专用的服务主体，并只赋予必要的最小权限
 - 在生产环境中，建议使用HTTPS
 
-## 技术栈
 
-- 前端: HTML, CSS, JavaScript
-- 后端: Node.js, Express
-- Azure SDK: @azure/arm-dns, @azure/identity
 
-## 许可
 
-MIT 
