@@ -23,21 +23,21 @@
 
 1. 克隆或下载此项目到本地
 2. 进入项目目录
-   
-cd azure-dns-panel
-
+   ```
+   cd azure-dns-panel
+   ```
 3. 安装依赖
-   
-npm install
-
+   ```
+   npm install
+   ```
 4. 安装PM2
-   
-npm install pm2 -g
-   
+   ```
+   npm install pm2 -g
+   ```   
 5. 启动服务器
-   
-pm2 start server.js
-
+   ```
+   pm2 start server.js
+   ```
 6. 打开浏览器访问 http://localhost:3000
 
 ## 如何使用
